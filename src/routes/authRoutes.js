@@ -8,9 +8,9 @@ const generateToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15d' });
 }
 
-router.post('/register', async(req, res) => {
+router.post('/register', async (req, res) => {
     try {
-        const {username, email, password, profileImage} = req.body;
+        const { username, email, password, profileImage } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
@@ -32,7 +32,7 @@ router.post('/register', async(req, res) => {
 
         // get random avatar image
         const randomProfileImage = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
-        
+
         // Create new user
         const user = new User({
             username,
@@ -44,7 +44,7 @@ router.post('/register', async(req, res) => {
         await user.save();                      // Save user to database
         const token = generateToken(user._id);  // Generate JWT token
 
-        res.status(201).json({ 
+        res.status(201).json({
             token,
             user: {
                 id: user._id,
@@ -59,8 +59,41 @@ router.post('/register', async(req, res) => {
     }
 });
 
-router.post('/login', async(req, res) => {
-    res.send('Login route');
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // check password is correct
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = generateToken(user._id);  
+
+        res.status(200).json({
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                profileImage: user.profileImage
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 export default router;
