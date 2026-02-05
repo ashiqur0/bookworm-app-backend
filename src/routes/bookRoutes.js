@@ -4,7 +4,7 @@ import Book from '../models/Book.js';
 
 const router = express.Router();
 
-router.post('/books', async (req, res) => {
+router.post('/', protectedRoute, async (req, res) => {
     try {
         const { title, caption, rating, image } = req.body;
 
