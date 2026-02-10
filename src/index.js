@@ -15,6 +15,10 @@ app.use(cors());
 app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 
+app.get('/', (req, res) => {
+    res.send('Welcome to the Bookworm API');
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   connectDB();
