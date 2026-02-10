@@ -10,12 +10,13 @@ const generateToken = (userId) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { username, email, password, profileImage } = req.body;
-
+        const { username, email, password } = req.body;
+        // const { username, email, password, profileImage } = req.body;
+        
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
-
+        
         if (password.length < 6) {
             return res.status(400).json({ message: 'Password must be at least 6 characters long' });
         }
@@ -23,13 +24,15 @@ router.post('/register', async (req, res) => {
         if (username.length < 3) {
             return res.status(400).json({ message: 'username must be at least 3 characters long' });
         }
-
+        
         // Check if user already exists
-        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-        if (existingUser) {
+        // const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+            const existingUserEmail = await User.findOne({ email });
+            const existingUserName = await User.findOne({ username });
+        if (existingUserEmail || existingUserName) {
             return res.status(400).json({ message: 'User with this email or username already exists' });
         }
-
+        
         // get random avatar image
         const randomProfileImage = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
 
@@ -38,7 +41,7 @@ router.post('/register', async (req, res) => {
             username,
             email,
             password, // In a real application, make sure to hash the password before saving
-            profileImage: profileImage || randomProfileImage
+            // profileImage: profileImage || randomProfileImage
         });
 
         await user.save();                      // Save user to database
@@ -50,7 +53,7 @@ router.post('/register', async (req, res) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
-                profileImage: user.profileImage
+                // profileImage: user.profileImage
             }
         });
     } catch (error) {
